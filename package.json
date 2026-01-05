@@ -1,0 +1,33 @@
+{
+  "name": "roks-rjsc",
+  "version": "0.1.0",
+  "description": "A React component library",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@vitejs/plugin-react": "^5.0.4",
+    "typescript": "^5.0.0",
+    "vite": "^7.1.9"
+  },
+  "keywords": [
+    "react",
+    "component",
+    "library"
+  ],
+  "author": "rokku",
+  "license": "MIT"
+}
