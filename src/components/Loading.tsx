@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useLoading } from "../contexts/LoadingContext";
+import useLoading from "../hooks/useLoading";
 
 export default function Loading({ isLoading = false }: { isLoading: boolean }) {
     const loader = useLoading();

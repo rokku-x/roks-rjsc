@@ -4,7 +4,10 @@ import dts from 'vite-plugin-dts'
 
 export default defineConfig({
     plugins: [
-        react(),
+        react({
+            jsxRuntime: 'automatic',
+            jsxImportSource: 'react'
+        }),
         dts({
             include: ['src/**/*'],
             exclude: ['src/main.tsx'],
@@ -14,15 +17,20 @@ export default defineConfig({
     build: {
         lib: {
             entry: 'src/index.ts',
+            formats: ['es', 'cjs'],
             name: 'roks-rjsc',
-            fileName: (format) => `index.${format}.js`
+            fileName: (format) => {
+                if (format === 'es') return 'index.esm.js'
+                return 'index.cjs.js'
+            }
         },
         rollupOptions: {
-            external: ['react', 'react-dom'],
+            external: ['react', 'react-dom', 'react/jsx-runtime'],
             output: {
                 globals: {
                     react: 'React',
-                    'react-dom': 'ReactDOM'
+                    'react-dom': 'ReactDOM',
+                    'react/jsx-runtime': 'react/jsx-runtime'
                 }
             }
         }

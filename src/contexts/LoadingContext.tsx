@@ -43,7 +43,7 @@ interface LoadingContextType {
     overrideLoading: (state: boolean) => void;
 }
 
-const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
+export const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
 
 export const LoadingProvider: React.FC<{
     children: ReactNode;
@@ -71,27 +71,30 @@ export const LoadingProvider: React.FC<{
     useEffect(() => {
         loadingEventTarget.emit('change', { isLoading });
         loadingEventTarget.emit(isLoading ? 'start' : 'stop', null);
-        if (isLoading && dialogRef.current && !dialogRef.current.open) {
-            dialogRef.current.showModal();
+        if (isLoading) {
+            dialogRef.current?.showModal();
             document.body.setAttribute('inert', '');
-        } else if (!isLoading && dialogRef.current && dialogRef.current.open) {
-            dialogRef.current.close();
+        } else if (!isLoading) {
             document.body.removeAttribute('inert');
         }
+
+    }, [loadingCount]);
+
+    useEffect(() => {
         return () => {
-            if (dialogRef.current && dialogRef.current.open) {
-                setLoadingCount(0);
-            }
+            setLoadingCount(0);
             loadingEventTarget.removeAllListeners();
         };
-    }, [isLoading]);
+    }, [])
 
     const wrapperIdFinal = wrapperId || 'loading-dialog';
 
     return (
         <LoadingContext.Provider value={{ get isLoading() { return isLoading; }, startLoading, stopLoading, loadingEventTarget, overrideLoading }}>
             {children}
-            {isLoading && <style>{`
+            {isLoading && createPortal(
+                <>
+                    <style>{`
                         dialog#${wrapperIdFinal}[open] {
                             display: flex !important;
                             justify-content: center;
@@ -116,66 +119,30 @@ export const LoadingProvider: React.FC<{
                             scrollbar-gutter: stable;
                         }
                     `}
-            </style>}
-            {isLoading && createPortal(
-                <dialog
-                    ref={dialogRef}
-                    style={{
-                        border: 'none',
-                        padding: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        backdropFilter: 'blur(2px)',
-                        ...wrapperStyle,
-                    }}
-                    className={wrapperClassName}
-                    id={wrapperIdFinal}
-                >
-                    <LoadingAnimationWrapper animationType={animationType} animationDuration={animationDuration} style={animationWrapperStyle} className={animationWrapperClassName} id={animationWrapperId}>
-                        {React.isValidElement(loadingComponent)
-                            ? loadingComponent
-                            : React.createElement(loadingComponent as React.ComponentType)}
-                    </LoadingAnimationWrapper>
-                </dialog>
+                    </style>
+                    <dialog
+                        ref={dialogRef}
+                        style={{
+                            border: 'none',
+                            padding: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                            backdropFilter: 'blur(2px)',
+                            ...wrapperStyle,
+                        }}
+                        className={wrapperClassName}
+                        id={wrapperIdFinal}
+                    >
+                        <LoadingAnimationWrapper animationType={animationType} animationDuration={animationDuration} style={animationWrapperStyle} className={animationWrapperClassName} id={animationWrapperId}>
+                            {React.isValidElement(loadingComponent)
+                                ? loadingComponent
+                                : React.createElement(loadingComponent as React.ComponentType)}
+                        </LoadingAnimationWrapper>
+                    </dialog>
+                </>
                 ,
                 document.body
             )}
         </LoadingContext.Provider>
     );
-};
-
-export const useLoading = () => {
-    const rawContext = useContext(LoadingContext);
-    if (!rawContext) throw new Error('useLoading must be used within a LoadingProvider');
-    const localCounter = useRef(0);
-
-    const { startLoading, stopLoading, isLoading, ...context } = rawContext;
-
-    const localStartLoading = () => {
-        startLoading();
-        localCounter.current += 1;
-    }
-
-    const localStopLoading = () => {
-        if (localCounter.current > 0) {
-            stopLoading();
-            localCounter.current -= 1;
-        }
-    }
-
-    const asyncUseLoading = async <R, _ extends any[]>(
-        asyncFunction: Promise<R>
-    ): Promise<R> => {
-        localStartLoading();
-        try {
-            return await asyncFunction;
-        } finally {
-            localStopLoading();
-        }
-    }
-
-
-    return {
-        startLoading: localStartLoading, stopLoading: localStopLoading, get isLocalLoading() { return localCounter.current > 0; }, ...context, asyncUseLoading, isLoading
-    };
 };
 
