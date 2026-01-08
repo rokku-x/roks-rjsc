@@ -15,6 +15,7 @@ export default defineConfig({
         })
     ],
     build: {
+        minify: 'esbuild',
         lib: {
             entry: {
                 index: 'src/index.ts',
