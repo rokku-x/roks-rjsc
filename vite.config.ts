@@ -10,7 +10,7 @@ export default defineConfig({
         }),
         dts({
             include: ['src/**/*'],
-            exclude: ['src/main.tsx'],
+            exclude: ['src/main.tsx', 'src/**/*.test.*', 'src/**/*.spec.*', 'src/**/__tests__/**'],
             rollupTypes: true
         })
     ],
