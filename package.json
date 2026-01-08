@@ -1,6 +1,6 @@
 {
   "name": "roks-rjsc",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A React component library",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
@@ -35,7 +35,8 @@
   },
   "sideEffects": false,
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "repository": {
     "type": "git",
