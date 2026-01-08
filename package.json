@@ -35,8 +35,7 @@
   },
   "sideEffects": false,
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "repository": {
     "type": "git",
@@ -51,6 +50,16 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.esm.js",
       "require": "./dist/index.cjs.js"
+    },
+    "./modal": {
+      "types": "./dist/modal.d.ts",
+      "import": "./dist/modal.esm.js",
+      "require": "./dist/modal.cjs.js"
+    },
+    "./loading": {
+      "types": "./dist/loading.d.ts",
+      "import": "./dist/loading.esm.js",
+      "require": "./dist/loading.cjs.js"
     },
     "./package.json": "./package.json"
   },

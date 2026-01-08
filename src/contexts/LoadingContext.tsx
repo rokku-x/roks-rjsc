@@ -18,12 +18,12 @@ export const AnimationType = {
 
 export type AnimationType = (typeof AnimationType)[keyof typeof AnimationType];
 
-const LoadingAnimationWrapper: React.FC<{ animationType?: AnimationType, animationDuration?: number, children: React.ReactNode, style?: React.CSSProperties, className?: string, id?: string }> = ({ animationType = AnimationType.Spin, animationDuration, children, style, className, id }) => {
+const LoadingAnimationWrapper: React.FC<{ animationType?: AnimationType, animationDuration?: number, children: React.ReactNode, style?: React.CSSProperties, className?: string, id?: string, prefix?: string }> = ({ animationType = AnimationType.Spin, animationDuration, children, style, className, id, prefix }) => {
     const animationName = animationType;
     const defaultDuration = animationType === AnimationType.Spin ? 1 : animationType === AnimationType.FadeInOut ? 2 : 0;
     const duration = animationDuration || defaultDuration;
     const animationTiming = animationType === AnimationType.Spin ? 'linear' : animationType === AnimationType.FadeInOut ? 'ease-in-out' : 'linear';
-    const animation = animationType === AnimationType.None ? 'none' : `${animationName} ${duration}s ${animationTiming} infinite`;
+    const animation = animationType === AnimationType.None ? 'none' : `${prefix}-${animationName} ${duration}s ${animationTiming} infinite`;
     return <div style={{ animation, ...style }} className={className} id={id} children={children} />
 };
 
@@ -40,13 +40,14 @@ interface LoadingContextType {
     startLoading: () => void;
     stopLoading: () => void;
     loadingEventTarget: EventEmitter<LoadingEvents>;
-    overrideLoading: (state: boolean) => void;
+    overrideLoading: (state: boolean | null) => void;
 }
 
 export const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
 
 export const LoadingProvider: React.FC<{
-    children: ReactNode;
+    id?: string;
+    children: ReactNode | null;
     loadingComponent?: React.ComponentType | React.ReactElement;
     animationType?: AnimationType;
     animationDuration?: number;
@@ -56,45 +57,57 @@ export const LoadingProvider: React.FC<{
     animationWrapperStyle?: React.CSSProperties;
     animationWrapperClassName?: string;
     animationWrapperId?: string;
-}> = ({ children, loadingComponent, animationType = AnimationType.FadeInOut, animationDuration, wrapperStyle, wrapperClassName, wrapperId, animationWrapperStyle, animationWrapperClassName, animationWrapperId }) => {
-    loadingComponent = loadingComponent ? loadingComponent : animationType === AnimationType.Spin ? LoadingCircle : LoadingPleaseWait;
-    const [loadingCount, setLoadingCount] = useState(0);
-    const [overrideState, setOverrideState] = useState<null | boolean>(null);
-    const isLoading = overrideState ?? (loadingCount > 0);
+}> = (
+    {
+        children = null,
+        loadingComponent,
+        animationType = AnimationType.Spin,
+        animationDuration,
+        wrapperStyle,
+        wrapperClassName,
+        wrapperId,
+        animationWrapperStyle,
+        animationWrapperClassName,
+        animationWrapperId }) => {
 
-    const overrideLoading = (state: boolean) => setOverrideState(state);
-    const startLoading = () => setLoadingCount(prev => prev + 1);
-    const stopLoading = () => setLoadingCount(prev => Math.max(0, prev - 1));
+        loadingComponent = loadingComponent ? loadingComponent : animationType === AnimationType.Spin ? LoadingCircle : LoadingPleaseWait;
+        const randomId = useRef(Math.random().toString(36).substring(2, 6).replace(/[0-9]/g, ''));
+        const [loadingCount, setLoadingCount] = useState(0);
+        const [overrideState, setOverrideState] = useState<null | boolean>(null);
+        const isLoading = overrideState ?? (loadingCount > 0);
+        const overrideLoading = (state: boolean | null) => setOverrideState(state);
+        const startLoading = () => setLoadingCount(prev => prev + 1);
+        const stopLoading = () => setLoadingCount(prev => Math.max(0, prev - 1));
 
-    const dialogRef = useRef<HTMLDialogElement>(null);
+        const dialogRef = useRef<HTMLDialogElement>(null);
 
-    useEffect(() => {
-        loadingEventTarget.emit('change', { isLoading });
-        loadingEventTarget.emit(isLoading ? 'start' : 'stop', null);
-        if (isLoading) {
-            dialogRef.current?.showModal();
-            document.body.setAttribute('inert', '');
-        } else if (!isLoading) {
-            document.body.removeAttribute('inert');
-        }
+        useEffect(() => {
+            loadingEventTarget.emit('change', { isLoading });
+            loadingEventTarget.emit(isLoading ? 'start' : 'stop', null);
+            if (isLoading) {
+                dialogRef.current?.showModal();
+                document.body.setAttribute('inert', '');
+            } else if (!isLoading) {
+                document.body.removeAttribute('inert');
+            }
 
-    }, [loadingCount]);
+        }, [loadingCount, isLoading]);
 
-    useEffect(() => {
-        return () => {
-            setLoadingCount(0);
-            loadingEventTarget.removeAllListeners();
-        };
-    }, [])
+        useEffect(() => {
+            return () => {
+                setLoadingCount(0);
+                loadingEventTarget.removeAllListeners();
+            };
+        }, [])
 
-    const wrapperIdFinal = wrapperId || 'loading-dialog';
+        const wrapperIdFinal = wrapperId || 'loading-wrapper-' + randomId.current;
 
-    return (
-        <LoadingContext.Provider value={{ get isLoading() { return isLoading; }, startLoading, stopLoading, loadingEventTarget, overrideLoading }}>
-            {children}
-            {isLoading && createPortal(
-                <>
-                    <style>{`
+        return (
+            <LoadingContext.Provider value={{ get isLoading() { return isLoading; }, startLoading, stopLoading, loadingEventTarget, overrideLoading }}>
+                {children}
+                {isLoading && createPortal(
+                    <>
+                        <style>{`
                         dialog#${wrapperIdFinal}[open] {
                             display: flex !important;
                             justify-content: center;
@@ -104,11 +117,11 @@ export const LoadingProvider: React.FC<{
                             max-width: 100%;
                             max-height: 100%;
                         }
-                        @keyframes spin {
+                        @keyframes ${randomId.current}-spin {
                             0% { transform: rotate(0deg); }
                             100% { transform: rotate(360deg); }
                         }
-                        @keyframes fadeInOut {
+                        @keyframes ${randomId.current}-fadeInOut {
                             0%, 100% { opacity: 0.2; }
                             50% { opacity: 1; }
                         }
@@ -119,30 +132,30 @@ export const LoadingProvider: React.FC<{
                             scrollbar-gutter: stable;
                         }
                     `}
-                    </style>
-                    <dialog
-                        ref={dialogRef}
-                        style={{
-                            border: 'none',
-                            padding: 0,
-                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                            backdropFilter: 'blur(2px)',
-                            ...wrapperStyle,
-                        }}
-                        className={wrapperClassName}
-                        id={wrapperIdFinal}
-                    >
-                        <LoadingAnimationWrapper animationType={animationType} animationDuration={animationDuration} style={animationWrapperStyle} className={animationWrapperClassName} id={animationWrapperId}>
-                            {React.isValidElement(loadingComponent)
-                                ? loadingComponent
-                                : React.createElement(loadingComponent as React.ComponentType)}
-                        </LoadingAnimationWrapper>
-                    </dialog>
-                </>
-                ,
-                document.body
-            )}
-        </LoadingContext.Provider>
-    );
-};
+                        </style>
+                        <dialog
+                            ref={dialogRef}
+                            style={{
+                                border: 'none',
+                                padding: 0,
+                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                backdropFilter: 'blur(2px)',
+                                ...wrapperStyle,
+                            }}
+                            className={wrapperClassName}
+                            id={wrapperIdFinal}
+                        >
+                            <LoadingAnimationWrapper animationType={animationType} animationDuration={animationDuration} style={animationWrapperStyle} className={animationWrapperClassName} id={animationWrapperId} prefix={randomId.current}>
+                                {React.isValidElement(loadingComponent)
+                                    ? loadingComponent
+                                    : React.createElement(loadingComponent as React.ComponentType)}
+                            </LoadingAnimationWrapper>
+                        </dialog>
+                    </>
+                    ,
+                    document.body
+                )}
+            </LoadingContext.Provider>
+        );
+    };
 

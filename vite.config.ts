@@ -11,17 +11,21 @@ export default defineConfig({
         dts({
             include: ['src/**/*'],
             exclude: ['src/main.tsx', 'src/**/*.test.*', 'src/**/*.spec.*', 'src/**/__tests__/**'],
-            rollupTypes: true
+            rollupTypes: false
         })
     ],
     build: {
         lib: {
-            entry: 'src/index.ts',
+            entry: {
+                index: 'src/index.ts',
+                modal: 'src/modal.ts',
+                loading: 'src/loading.ts'
+            },
             formats: ['es', 'cjs'],
             name: 'roks-rjsc',
-            fileName: (format) => {
-                if (format === 'es') return 'index.esm.js'
-                return 'index.cjs.js'
+            fileName: (format, entryName) => {
+                const ext = format === 'es' ? 'esm' : 'cjs'
+                return `${entryName}.${ext}.js`
             }
         },
         rollupOptions: {
