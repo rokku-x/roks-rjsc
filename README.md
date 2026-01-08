@@ -20,16 +20,16 @@
 
  Import named exports from the package root. Examples below assume React 18.
 
- Basic component:
+Core components:
 
- ```tsx
- import React from 'react';
- import { Button } from 'roks-rjsc';
+```tsx
+import React from 'react';
+import { /* core exports */ } from 'roks-rjsc';
 
- export default function App() {
-	 return <Button onClick={() => alert('clicked')}>Click me</Button>;
- }
- ```
+export default function App() {
+	return <div>Your app root</div>;
+}
+```
 
  Loading provider and hook:
 
@@ -87,18 +87,21 @@
 
  export default function App() {
 	 return (
-		 <BaseModalProvider>
-			 <StaticExample />
-			 <DynamicExample />
-		 </BaseModalProvider>
+		<BaseModalProvider>
+			<StaticExample />
+			<DynamicExample />
+		</BaseModalProvider>
 	 )
  }
  ```
 
- API (top-level exports)
- - `Button` - basic button component
- - `LoadingProvider`, `useLoading`, `Loading`, `AnimationType` - loading utilities
- - `BaseModalProvider`, `useBaseModal`, `useStaticModal`, `useDynamicModal`, `RenderMode` - modal system
+API (top-level exports)
+- `LoadingProvider`, `useLoading`, `Loading`, `AnimationType` - loading utilities (available via `roks-rjsc/loading`)
+- `BaseModalProvider`, `useBaseModal`, `useStaticModal`, `useDynamicModal`, `RenderMode` - modal system (available via `roks-rjsc/modal`)
+
+Subpath imports
+- `roks-rjsc/modal`: exports `BaseModalProvider`, `useBaseModal`, `useStaticModal`, `useDynamicModal`, `RenderMode`
+- `roks-rjsc/loading`: exports `LoadingProvider`, `useLoading`, `Loading`, `AnimationType`
 
  ## License
 

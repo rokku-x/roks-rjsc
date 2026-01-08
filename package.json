@@ -1,6 +1,6 @@
 {
   "name": "roks-rjsc",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A React component library",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
@@ -51,6 +51,16 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.esm.js",
       "require": "./dist/index.cjs.js"
+    },
+    "./modal": {
+      "types": "./dist/modal.d.ts",
+      "import": "./dist/modal.esm.js",
+      "require": "./dist/modal.cjs.js"
+    },
+    "./loading": {
+      "types": "./dist/loading.d.ts",
+      "import": "./dist/loading.esm.js",
+      "require": "./dist/loading.cjs.js"
     },
     "./package.json": "./package.json"
   },

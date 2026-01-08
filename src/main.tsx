@@ -1,9 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { LoadingProvider, Button, AnimationType } from './index'
 import BaseModalProvider from './contexts/ModalContext'
 import useDynamicModal, { RenderMode } from './hooks/useDynamicModal'
 import useLoading from './hooks/useLoading'
+import { AnimationType, LoadingProvider } from './loading'
 
 function App() {
     const { asyncUseLoading, loadingEventTarget, overrideLoading } = useLoading()
@@ -16,22 +16,27 @@ function App() {
         console.log(await asyncUseLoading(new Promise((resolve, reject) => {
             setTimeout(() => {
                 reject("hello")
-            }, 1000);
+            }, 2000);
         })))
     }
 
     return (
         <div style={{ padding: '20px' }}>
             <h1>roks-rjsc Dev</h1>
-            <Button onClick={handleLoad}>Start Loading</Button>
             <div style={{ marginTop: '20px' }}>
-                <h2>Components:</h2>
-                <Button>Default Button</Button>
-
+                <h2>Functions:</h2>
             </div>
             <div>
-                <Button onClick={() => pushModal2()}>Show Dynamic Modal</Button>
+                <button onClick={() => pushModal2()}>Show Dynamic Modal</button>
             </div>
+            <div style={{ marginTop: '20px' }}>
+
+                <button onClick={handleLoad}>Start Loading (2s)</button>
+                <button onClick={() => overrideLoading(true)}>Override Loading ON</button>
+                <button onClick={() => overrideLoading(false)}>Override Loading OFF</button>
+                <button onClick={() => overrideLoading(null)}>Override Loading NULL</button>
+            </div>
+
             <div>
                 {renderModalElement2(<div style={{ backgroundColor: 'white', padding: '20px', border: '2px solid black' }}>
                     <h3>Dynamic Modal {modalId2} isForeground: {isForeground2.toString()}</h3>
