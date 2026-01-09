@@ -1,24 +1,24 @@
- # roks-rjsc
+# roks-rjsc
 
- A small React component library exposing a few UI helpers and modal/loading utilities.
+A small React component library exposing a few UI helpers and modal/loading utilities.
 
- ## Installation
+## Installation
 
- Install from npm (after publishing):
+Install from npm (after publishing):
 
- ```bash
+```bash
 npm install @rokku-x/roks-rjsc
- ```
+```
 
- During development you can also install directly from GitHub:
+During development you can also install directly from GitHub:
 
- ```bash
+```bash
 npm install github:rokku-x/roks-rjsc
- ```
+```
 
- ## Usage
+## Usage
 
- Import named exports from the package root. Examples below assume React 18.
+Import named exports from the package root. Examples below assume React 18.
 
 Core components:
 
@@ -31,73 +31,73 @@ export default function App() {
 }
 ```
 
- Loading provider and hook:
+Loading provider and hook:
 
- ```tsx
- import React from 'react';
- import { LoadingProvider, useLoading } from '@rokku-x/roks-rjsc/loading';
+```tsx
+import React from 'react';
+import { LoadingProvider, useLoading } from '@rokku-x/roks-rjsc/loading';
 
- function Example() {
-	 const { startLoading, stopLoading, asyncUseLoading } = useLoading();
+function Example() {
+	const { startLoading, stopLoading, asyncUseLoading } = useLoading();
 
-	 const handle = async () => {
-		 startLoading();
-		 await new Promise(r => setTimeout(r, 1000));
-		 stopLoading();
-	 }
+	const handle = async () => {
+		startLoading();
+		await new Promise(r => setTimeout(r, 1000));
+		stopLoading();
+	}
 
-	 return <button onClick={handle}>Load</button>
- }
+	return <button onClick={handle}>Load</button>
+}
 
- export default function AppWrapper() {
-	 return (
-		 <LoadingProvider>
-			 <Example />
-		 </LoadingProvider>
-	 )
- }
- ```
+export default function AppWrapper() {
+	return (
+		<LoadingProvider>
+			<Example />
+		</LoadingProvider>
+	)
+}
+```
 
- Modal helpers (BaseModalProvider + hooks):
+Modal helpers (BaseModalProvider + hooks):
 
- ```tsx
- import React from 'react';
- import { BaseModalProvider, useStaticModal, useDynamicModal } from '@rokku-x/roks-rjsc/modal';
+```tsx
+import React from 'react';
+import { BaseModalProvider, useStaticModal, useDynamicModal } from '@rokku-x/roks-rjsc/modal';
 
- function StaticExample() {
-	 const [show, close, id] = useStaticModal();
+function StaticExample() {
+	const [show, close, id] = useStaticModal();
 
-	 return (
-		 <>
-			 <button onClick={() => show(<div>Static content</div>)}>Open static modal</button>
-		 </>
-	 )
- }
+	return (
+		<>
+			<button onClick={() => show(<div>Static content</div>)}>Open static modal</button>
+		</>
+	)
+}
 
- function DynamicExample() {
-	 const [render, show, close, focus] = useDynamicModal();
+function DynamicExample() {
+	const [render, show, close, focus] = useDynamicModal();
 
-	 return (
-		 <>
-			 <button onClick={() => show()}>Open dynamic modal</button>
-			 {render(<div>Rendered into dynamic modal</div>)}
-		 </>
-	 )
- }
+	return (
+		<>
+			<button onClick={() => show()}>Open dynamic modal</button>
+			{render(<div>Rendered into dynamic modal</div>)}
+		</>
+	)
+}
 
- export default function App() {
-	 return (
+export default function App() {
+	return (
 		<BaseModalProvider>
 			<StaticExample />
 			<DynamicExample />
 		</BaseModalProvider>
-	 )
- }
- ```
+	)
+}
+```
 
 API (top-level exports)
- - `LoadingProvider`, `useLoading`, `Loading`, `AnimationType` - loading utilities (available via `@rokku-x/roks-rjsc/loading`)
- - `BaseModalProvider`, `useBaseModal`, `useStaticModal`, `useDynamicModal`, `RenderMode` - modal system (available via `@rokku-x/roks-rjsc/modal`)
+- `LoadingProvider`, `useLoading`, `Loading`, `AnimationType` - loading utilities (available via `@rokku-x/roks-rjsc/loading`)
+- `BaseModalProvider`, `useBaseModal`, `useStaticModal`, `useDynamicModal`, `RenderMode` - modal system (available via `@rokku-x/roks-rjsc/modal`)
 
 Subpath imports
 - `@rokku-x/roks-rjsc/modal`: exports `BaseModalProvider`, `useBaseModal`, `useStaticModal`, `useDynamicModal`, `RenderMode`
@@ -110,9 +110,9 @@ Subpath imports
 | Prop | Type | Description |
 |---|---|---|
 | `id` | `string?` | Optional id for the provider wrapper |
-| `children` | `ReactNode  null` | Provider children |
-| `loadingComponent` | `React.ComponentType  React.ReactElement?` | Custom loading element |
-| `animationType` | `AnimationType?` | One of `Spin  FadeInOut  None` |
+| `children` | `ReactNode \| null` | Provider children |
+| `loadingComponent` | `React.ComponentType \| React.ReactElement?` | Custom loading element |
+| `animationType` | `AnimationType?` | One of `Spin \| FadeInOut \| None` |
 | `animationDuration` | `number?` | Seconds for animation duration |
 | `wrapperStyle` | `React.CSSProperties?` | Style for wrapper element |
 | `wrapperClassName` | `string?` | Class name for wrapper |
@@ -128,8 +128,8 @@ Subpath imports
 | `asyncUseLoading` | `<R>(asyncFunction: Promise<R>) => Promise<R>` | Run async function while toggling loading |
 | `isLoading` | `boolean` | Global loading state |
 | `isLocalLoading` | `boolean` | Local hook instance loading state |
-| `loadingEventTarget` | `EventEmitter` | Event emitter for `change  start  stop` events |
-| `overrideLoading` | `(state: boolean  null) => void` | Force override loading state |
+| `loadingEventTarget` | `EventEmitter` | Event emitter for `change \| start \| stop` events |
+| `overrideLoading` | `(state: boolean \| null) => void` | Force override loading state |
 | `startLoading` | `() => void` | Increment/start loading |
 | `stopLoading` | `() => void` | Decrement/stop loading |
 
@@ -139,7 +139,7 @@ Subpath imports
 |---|---|---|
 | `children` | `React.ReactNode` | Content |
 | `wrapperId` | `string?` | Optional wrapper id |
-| `renderMode` | `RenderMode?` | `STACKED  CURRENT_ONLY  CURRENT_HIDDEN_STACK` |
+| `renderMode` | `RenderMode?` | `STACKED \| CURRENT_ONLY \| CURRENT_HIDDEN_STACK` |
 | `wrapperStyle` | `React.CSSProperties?` | Wrapper style |
 
 ### BaseModalProvider API (`useBaseModal()`)
@@ -150,9 +150,9 @@ Subpath imports
 | `renderMode` | `RenderMode?` | Current render mode |
 | `currentModalId` | `string?` | ID of current modal |
 | `pushModal` | `(el: React.ReactNode, modalId?: string, isDynamic?: boolean) => string` | Push modal and receive id |
-| `popModal` | `(idEl: string  React.ReactNode) => boolean` | Pop modal by id or element |
+| `popModal` | `(idEl: string \| React.ReactNode) => boolean` | Pop modal by id or element |
 | `updateModalContent` | `(modalId: string, newContent: React.ReactNode) => void` | Replace modal content |
-| `getModalWindowRef` | `(modalId: string) => HTMLDivElement  undefined` | Access modal DOM |
+| `getModalWindowRef` | `(modalId: string) => HTMLDivElement \| undefined` | Access modal DOM |
 | `focusModal` | `(modalId: string) => boolean` | Bring modal to front |
 | `getModalOrderIndex` | `(modalId: string) => number` | Get stacking order index |
 
@@ -183,6 +183,6 @@ Returns a tuple: `[render(el) => ReactNode, show(), close(), focus(), id, isFore
 
 
 
- ## License
+## License
 
- MIT
+MIT
