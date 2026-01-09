@@ -1,18 +1,15 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import BaseModalProvider from './contexts/ModalContext'
 import useDynamicModal, { RenderMode } from './hooks/useDynamicModal'
 import useLoading from './hooks/useLoading'
 import { AnimationType, LoadingProvider } from './loading'
+import useStaticModal from './hooks/useStaticModal'
 
 function App() {
     const { asyncUseLoading, loadingEventTarget, overrideLoading } = useLoading()
     const [renderModalElement2, pushModal2, popModal2, focusModal2, modalId2, isForeground2] = useDynamicModal();
     const handleLoad = async () => {
-        loadingEventTarget.addEventListener('change', (e: any) => {
-            console.log('loading changed', e.detail.isLoading)
-        });
-
         console.log(await asyncUseLoading(new Promise((resolve, reject) => {
             setTimeout(() => {
                 reject("hello")
@@ -20,9 +17,19 @@ function App() {
         })))
     }
 
+    useEffect(() => {
+        loadingEventTarget.addEventListener('change', (e: any) => {
+            console.log('loading changed', e.detail.isLoading, e.detail.isOverrideState)
+        });
+    }, []);
+
     return (
         <div style={{ padding: '20px' }}>
             <h1>roks-rjsc Dev</h1>
+            <div style={{ marginTop: '20px' }}>
+                <h2>Static Modal Example:</h2>
+                <StaticExample />
+            </div>
             <div style={{ marginTop: '20px' }}>
                 <h2>Functions:</h2>
             </div>
@@ -44,9 +51,23 @@ function App() {
                     <br />
                     <button onClick={popModal2}>Close Modal</button>
                     <button onClick={focusModal2}>Focus Modal</button>
+                    <StaticExample />
                 </div>
                 )}
             </div>
+        </div>
+    )
+}
+
+function StaticExample() {
+    const [showStatic, closeStatic, staticId] = useStaticModal()
+    return (
+        <div>
+            <button onClick={() => showStatic(<div style={{ padding: 20 }}>
+                <h3>Static Modal</h3>
+                <p>This is a static modal example</p>
+                <button onClick={closeStatic}>Close</button>
+            </div>)}>Open Static Modal</button>
         </div>
     )
 }

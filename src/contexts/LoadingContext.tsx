@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import EventEmitter from '../utils/EventEmitter';
 
 type LoadingEvents = {
-    change: { isLoading: boolean } | null;
+    change: { isLoading: boolean, isOverrideState: boolean } | null;
     start: null;
     stop: null;
 };
@@ -18,21 +18,21 @@ export const AnimationType = {
 
 export type AnimationType = (typeof AnimationType)[keyof typeof AnimationType];
 
-const LoadingAnimationWrapper: React.FC<{ animationType?: AnimationType, animationDuration?: number, children: React.ReactNode, style?: React.CSSProperties, className?: string, id?: string, prefix?: string }> = ({ animationType = AnimationType.Spin, animationDuration, children, style, className, id, prefix }) => {
+const LoadingAnimationWrapper: React.FC<{ scale?: number, animationType?: AnimationType, animationDuration?: number, children: React.ReactNode, style?: React.CSSProperties, className?: string, id?: string, prefix?: string }> = ({ scale = 1, animationType = AnimationType.Spin, animationDuration, children, style, className, id, prefix }) => {
     const animationName = animationType;
     const defaultDuration = animationType === AnimationType.Spin ? 1 : animationType === AnimationType.FadeInOut ? 2 : 0;
     const duration = animationDuration || defaultDuration;
     const animationTiming = animationType === AnimationType.Spin ? 'linear' : animationType === AnimationType.FadeInOut ? 'ease-in-out' : 'linear';
     const animation = animationType === AnimationType.None ? 'none' : `${prefix}-${animationName} ${duration}s ${animationTiming} infinite`;
-    return <div style={{ animation, ...style }} className={className} id={id} children={children} />
+    return <div style={{ animation, ...(scale !== 1 ? { zoom: scale } : {}), ...style }} className={className} id={id} children={children} />
 };
 
-const LoadingCircle: React.FC = () => (
-    <div id="loading-circle" style={{ width: '60px', height: '60px', border: '10px solid #f3f3f3', borderTop: '10px solid #009b4bff', borderRadius: '50%' }} />
+export const LoadingCircle: React.FC = (props) => (
+    <div id="loading-circle" style={{ width: '90px', height: '90px', border: '15px solid #f3f3f3', borderTop: '15px solid #009b4bff', borderRadius: '50%', boxSizing: 'border-box' }} {...props} />
 );
 
-const LoadingPleaseWait: React.FC = () => (
-    <div style={{ padding: '20px', fontSize: '25px', color: '#333', fontFamily: 'system-ui, sans-serif' }} children={"Please wait..."} />
+export const LoadingPleaseWait: React.FC = (props) => (
+    <div style={{ padding: '20px', fontSize: '25px', color: '#333', fontFamily: 'system-ui, sans-serif' }} {...props} children={"Please wait..."} />
 );
 
 interface LoadingContextType {
@@ -47,7 +47,8 @@ export const LoadingContext = createContext<LoadingContextType | undefined>(unde
 
 export const LoadingProvider: React.FC<{
     id?: string;
-    children: ReactNode | null;
+    children?: ReactNode | null;
+    loadingComponentScale?: number;
     loadingComponent?: React.ComponentType | React.ReactElement;
     animationType?: AnimationType;
     animationDuration?: number;
@@ -61,6 +62,7 @@ export const LoadingProvider: React.FC<{
     {
         children = null,
         loadingComponent,
+        loadingComponentScale = 1,
         animationType = AnimationType.Spin,
         animationDuration,
         wrapperStyle,
@@ -75,6 +77,7 @@ export const LoadingProvider: React.FC<{
         const [loadingCount, setLoadingCount] = useState(0);
         const [overrideState, setOverrideState] = useState<null | boolean>(null);
         const isLoading = overrideState ?? (loadingCount > 0);
+        const lastIsLoading = useRef(isLoading);
         const overrideLoading = (state: boolean | null) => setOverrideState(state);
         const startLoading = () => setLoadingCount(prev => prev + 1);
         const stopLoading = () => setLoadingCount(prev => Math.max(0, prev - 1));
@@ -82,16 +85,17 @@ export const LoadingProvider: React.FC<{
         const dialogRef = useRef<HTMLDialogElement>(null);
 
         useEffect(() => {
-            loadingEventTarget.emit('change', { isLoading });
-            loadingEventTarget.emit(isLoading ? 'start' : 'stop', null);
-            if (isLoading) {
+            loadingEventTarget.emit('change', { isLoading, isOverrideState: overrideState !== null ? true : false });
+            if (isLoading && !lastIsLoading.current) {
+                loadingEventTarget.emit('start', null);
                 dialogRef.current?.showModal();
                 document.body.setAttribute('inert', '');
-            } else if (!isLoading) {
+            } else if (!isLoading && lastIsLoading.current) {
+                loadingEventTarget.emit('stop', null);
                 document.body.removeAttribute('inert');
             }
-
-        }, [loadingCount, isLoading]);
+            lastIsLoading.current = isLoading;
+        }, [loadingCount, overrideState]);
 
         useEffect(() => {
             return () => {
@@ -145,7 +149,7 @@ export const LoadingProvider: React.FC<{
                             className={wrapperClassName}
                             id={wrapperIdFinal}
                         >
-                            <LoadingAnimationWrapper animationType={animationType} animationDuration={animationDuration} style={animationWrapperStyle} className={animationWrapperClassName} id={animationWrapperId} prefix={randomId.current}>
+                            <LoadingAnimationWrapper scale={loadingComponentScale} animationType={animationType} animationDuration={animationDuration} style={animationWrapperStyle} className={animationWrapperClassName} id={animationWrapperId} prefix={randomId.current}>
                                 {React.isValidElement(loadingComponent)
                                     ? loadingComponent
                                     : React.createElement(loadingComponent as React.ComponentType)}
