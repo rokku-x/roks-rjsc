@@ -1,32 +1,37 @@
-import { useContext, useRef, ReactNode } from "react";
+import { useRef, ReactNode, useId, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { BaseModalContext, RenderMode } from "../contexts/ModalContext";
+import useBaseModal, { RenderMode, useBaseModalInternal } from "./useBaseModal";
 
-export default function useDynamicModal(id: string = Math.random().toString(36).substring(2, 6)) {
-    const rawContext = useContext(BaseModalContext);
-    if (!rawContext) throw new Error('useBaseModal must be used within a BaseModalProvider');
-    let modalIdRef = useRef<string>(id);
-    const isForeground = rawContext.currentModalId === modalIdRef.current;
+export default function useDynamicModal(id: string = useId()) {
+    const { pushModal, popModal, focusModal, getModalWindowRef, currentModalId } = useBaseModal();
+    const [, setRerender] = useState(0);
+    const isForeground = currentModalId === id;
+
+    useEffect(() => {
+        setRerender((r) => r + 1);
+    }, [currentModalId]);
+
     const renderModalElement = (el: JSX.Element): ReactNode => {
-        if (!rawContext.getModalWindowRef(modalIdRef.current)) return null;
+        const modalWindowRef = getModalWindowRef(id);
+        if (!modalWindowRef) return null;
         return createPortal(
             el,
-            rawContext.getModalWindowRef(modalIdRef.current)!
+            modalWindowRef
         );
     }
 
     const showModal = () => {
-        rawContext.pushModal(null, modalIdRef.current, true)[1];
+        pushModal(id, null, true);
     }
 
     const closeModal = () => {
-        rawContext.popModal(modalIdRef.current);
+        popModal(id);
     }
 
-    const focusModal = () => {
-        rawContext.focusModal(modalIdRef.current);
+    const focus = () => {
+        focusModal(id);
     }
 
-    return [renderModalElement, showModal, closeModal, focusModal, modalIdRef.current, isForeground] as [typeof renderModalElement, typeof showModal, typeof closeModal, typeof focusModal, string, boolean];
+    return [renderModalElement, showModal, closeModal, focus, id, isForeground] as [typeof renderModalElement, typeof showModal, typeof closeModal, typeof focus, string, boolean];
 }
 export { RenderMode };

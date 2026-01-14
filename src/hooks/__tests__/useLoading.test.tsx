@@ -1,25 +1,41 @@
 import React from 'react'
 import { renderHook, act } from '@testing-library/react'
-import useLoading from '../useLoading'
-import { LoadingProvider } from '../../contexts/LoadingContext'
+import { beforeEach, describe, it, expect, vi } from 'vitest'
 
-describe('useLoading', () => {
-    it('throws outside provider', () => {
-        expect(() => renderHook(() => useLoading())).toThrow()
+let useLoading: typeof import('../useLoading').default;
+
+describe('useLoading (zustand store)', () => {
+    beforeEach(async () => {
+        vi.resetModules();
+        ({ default: useLoading } = await import('../useLoading'));
+    });
+
+    it('can be used without provider', () => {
+        expect(() => renderHook(() => useLoading())).not.toThrow()
     })
 
-    it('local counter and asyncUseLoading', async () => {
-        const wrapper = ({ children }: any) => <LoadingProvider>{children}</LoadingProvider>
-        const { result } = renderHook(() => useLoading(), { wrapper })
+    it('loading actions work', () => {
+        const { result } = renderHook(() => useLoading())
+
+        expect(result.current.isLoading).toBe(false)
 
         act(() => result.current.startLoading())
-        expect(result.current.isLocalLoading).toBe(true)
-        act(() => result.current.stopLoading())
-        expect(result.current.isLocalLoading).toBe(false)
+        expect(result.current.isLoading).toBe(true)
 
-        await act(async () => {
-            await result.current.asyncUseLoading(new Promise(res => setTimeout(res, 10)))
-        })
-        expect(result.current.isLocalLoading).toBe(false)
+        act(() => result.current.stopLoading())
+        expect(result.current.isLoading).toBe(false)
+    })
+
+    it('override loading works', () => {
+        const { result } = renderHook(() => useLoading())
+
+        act(() => result.current.overrideLoading(true))
+        expect(result.current.isLoading).toBe(true)
+
+        act(() => result.current.overrideLoading(false))
+        expect(result.current.isLoading).toBe(false)
+
+        act(() => result.current.overrideLoading(null))
+        expect(result.current.isLoading).toBe(false)
     })
 })

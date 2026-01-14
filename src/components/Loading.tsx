@@ -1,17 +1,19 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import useLoading from "../hooks/useLoading";
 
 export default function Loading({ isLoading = false }: { isLoading: boolean }) {
-    const loader = useLoading();
+    const { startLoading, stopLoading } = useLoading();
 
     useEffect(() => {
         if (isLoading) {
-            loader.startLoading();
+            startLoading();
         } else {
-            loader.stopLoading();
+            stopLoading();
         }
         return () => {
-            if (isLoading) loader.stopLoading();
+            if (isLoading) {
+                stopLoading();
+            }
         }
     }, [isLoading]);
     return null

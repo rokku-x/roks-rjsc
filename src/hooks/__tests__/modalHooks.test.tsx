@@ -1,6 +1,7 @@
 import React from 'react'
 import { render, screen, act } from '@testing-library/react'
-import BaseModalProvider from '../../contexts/ModalContext'
+import { beforeEach, describe, it, expect, vi } from 'vitest'
+import BaseModalRenderer from '../../components/BaseModalRenderer'
 import useStaticModal from '../useStaticModal'
 import useDynamicModal from '../useDynamicModal'
 
@@ -20,11 +21,19 @@ function DynamicComponent() {
 }
 
 describe('modal hooks (static/dynamic)', () => {
+    beforeEach(async () => {
+        vi.resetModules();
+        (HTMLDialogElement.prototype as any).showModal = vi.fn();
+        (HTMLDialogElement.prototype as any).close = vi.fn();
+        document.body.innerHTML = '';
+    });
+
     it('static modal shows provided content and can be closed', async () => {
         render(
-            <BaseModalProvider>
+            <>
+                <BaseModalRenderer />
                 <StaticComponent />
-            </BaseModalProvider>
+            </>
         )
         const btn = screen.getByTestId('open-static')
         act(() => btn.click())
@@ -33,9 +42,10 @@ describe('modal hooks (static/dynamic)', () => {
 
     it('dynamic modal renders into portal when shown', async () => {
         render(
-            <BaseModalProvider>
+            <>
+                <BaseModalRenderer />
                 <DynamicComponent />
-            </BaseModalProvider>
+            </>
         )
         const btn = screen.getByTestId('open-dyn')
         act(() => btn.click())

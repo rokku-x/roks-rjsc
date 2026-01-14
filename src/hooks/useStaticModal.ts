@@ -1,23 +1,21 @@
-import { useContext, useRef } from "react";
-import { BaseModalContext, RenderMode } from "../contexts/ModalContext";
-
+import { useId } from "react";
+import useBaseModal, { RenderMode } from "./useBaseModal";
 export { RenderMode };
 
-export default function useStaticModal(id: string = Math.random().toString(36).substring(2, 6)) {
-    const rawContext = useContext(BaseModalContext);
-    if (!rawContext) throw new Error('useBaseModal must be used within a BaseModalProvider');
-    let modalIdRef = useRef<string>(id)
+export default function useStaticModal(id: string = useId()) {
+    const { pushModal, popModal } = useBaseModal();
 
     const showModal = (el: React.ReactNode) => {
-        rawContext.pushModal(el, modalIdRef.current);
+        pushModal(id, el);
         return closeModal
     }
     const closeModal = () => {
-        return rawContext.popModal(modalIdRef.current);
+        return popModal(id);
     }
 
     const updateModalContent = (newContent: React.ReactNode) => {
-        rawContext.updateModalContent(modalIdRef.current, newContent);
+        pushModal(id, newContent);
     }
-    return [showModal, closeModal, modalIdRef.current, rawContext.currentModalId === modalIdRef.current, updateModalContent] as [typeof showModal, typeof closeModal, string, boolean, typeof updateModalContent];
+
+    return [showModal, closeModal, id, updateModalContent] as [typeof showModal, typeof closeModal, string, typeof updateModalContent];
 }

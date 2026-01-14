@@ -31,14 +31,51 @@ export default function App() {
 }
 ```
 
-Loading provider and hook:
+### Quick Start
+
+Mount renderers once near your app root and use the hooks anywhere:
+
+```tsx
+import React, { useState } from 'react';
+import BaseModalRenderer from '@rokku-x/roks-rjsc/components/BaseModalRenderer';
+import { LoadingRenderer, useLoading } from '@rokku-x/roks-rjsc/loading';
+import { useStaticModal } from '@rokku-x/roks-rjsc/modal';
+
+function Demo() {
+	const { asyncUseLoading } = useLoading();
+	const [showStatic, closeStatic] = useStaticModal('qs');
+
+	const handleAsync = async () => {
+		await asyncUseLoading(new Promise(res => setTimeout(res, 2000)));
+	};
+
+	return (
+		<div>
+			<button onClick={handleAsync}>Async Use Loading (2s)</button>
+			<button onClick={() => showStatic(<div>Static modal content</div>)}>Open Static Modal</button>
+		</div>
+	);
+}
+
+export default function App() {
+	return (
+		<>
+			<Demo />
+			<BaseModalRenderer />
+			<LoadingRenderer />
+		</>
+	);
+}
+```
+
+Loading renderer and hook (Zustand):
 
 ```tsx
 import React from 'react';
-import { LoadingProvider, useLoading } from '@rokku-x/roks-rjsc/loading';
+import { LoadingRenderer, useLoading } from '@rokku-x/roks-rjsc/loading';
 
 function Example() {
-	const { startLoading, stopLoading, asyncUseLoading } = useLoading();
+	const { startLoading, stopLoading, asyncUseLoading, overrideLoading } = useLoading();
 
 	const handle = async () => {
 		startLoading();
@@ -49,20 +86,23 @@ function Example() {
 	return <button onClick={handle}>Load</button>
 }
 
-export default function AppWrapper() {
+export default function App() {
 	return (
-		<LoadingProvider>
+		<>
 			<Example />
-		</LoadingProvider>
+			{/* Render once near app root */}
+			<LoadingRenderer />
+		</>
 	)
 }
 ```
 
-Modal helpers (BaseModalProvider + hooks):
+Modal helpers (Zustand + BaseModalRenderer):
 
 ```tsx
 import React from 'react';
-import { BaseModalProvider, useStaticModal, useDynamicModal } from '@rokku-x/roks-rjsc/modal';
+import { useStaticModal, useDynamicModal } from '@rokku-x/roks-rjsc/modal';
+import BaseModalRenderer from '@rokku-x/roks-rjsc/components/BaseModalRenderer';
 
 function StaticExample() {
 	const [show, close, id] = useStaticModal();
@@ -87,30 +127,32 @@ function DynamicExample() {
 
 export default function App() {
 	return (
-		<BaseModalProvider>
+		<>
 			<StaticExample />
 			<DynamicExample />
-		</BaseModalProvider>
+			{/* Render once near app root */}
+			<BaseModalRenderer />
+		</>
 	)
 }
 ```
 
 API (top-level exports)
-- `LoadingProvider`, `useLoading`, `Loading`, `AnimationType` - loading utilities (available via `@rokku-x/roks-rjsc/loading`)
-- `BaseModalProvider`, `useBaseModal`, `useStaticModal`, `useDynamicModal`, `RenderMode` - modal system (available via `@rokku-x/roks-rjsc/modal`)
+- `LoadingRenderer`, `useLoading`, `Loading`, `AnimationType`, `loadingEventTarget` - loading utilities (available via `@rokku-x/roks-rjsc/loading`)
+- `BaseModalRenderer`, `useBaseModal`, `useStaticModal`, `useDynamicModal`, `RenderMode` - modal system (available via `@rokku-x/roks-rjsc/modal`)
 
 Subpath imports
-- `@rokku-x/roks-rjsc/modal`: exports `BaseModalProvider`, `useBaseModal`, `useStaticModal`, `useDynamicModal`, `RenderMode`
-- `@rokku-x/roks-rjsc/loading`: exports `LoadingProvider`, `useLoading`, `Loading`, `AnimationType`
+- `@rokku-x/roks-rjsc/modal`: exports `BaseModalRenderer`, `useBaseModal`, `useStaticModal`, `useDynamicModal`, `RenderMode`
+- `@rokku-x/roks-rjsc/loading`: exports `LoadingRenderer`, `useLoading`, `Loading`, `AnimationType`, `loadingEventTarget`
 
 ## Props & API Reference
 
-### LoadingProvider props
+### LoadingRenderer props
 
 | Prop | Type | Description |
 |---|---|---|
-| `id` | `string?` | Optional id for the provider wrapper |
-| `children` | `ReactNode \| null` | Provider children |
+| `id` | `string?` | Optional id for the loading dialog wrapper |
+| `children` | `ReactNode \| null` | Children are not typically required |
 | `loadingComponent` | `React.ComponentType \| React.ReactElement?` | Custom loading element |
 | `animationType` | `AnimationType?` | One of `Spin \| FadeInOut \| None` |
 | `animationDuration` | `number?` | Seconds for animation duration |
@@ -126,35 +168,32 @@ Subpath imports
 | Name | Type / Signature | Description |
 |---|---|---|
 | `asyncUseLoading` | `<R>(asyncFunction: Promise<R>) => Promise<R>` | Run async function while toggling loading |
-| `isLoading` | `boolean` | Global loading state |
+| `isLoading` | `boolean` | Global loading state (derived) |
 | `isLocalLoading` | `boolean` | Local hook instance loading state |
 | `loadingEventTarget` | `EventEmitter` | Event emitter for `change \| start \| stop` events |
 | `overrideLoading` | `(state: boolean \| null) => void` | Force override loading state |
 | `startLoading` | `() => void` | Increment/start loading |
 | `stopLoading` | `() => void` | Decrement/stop loading |
 
-### Modal Provider props
+### BaseModalRenderer props
 
 | Prop | Type | Description |
 |---|---|---|
-| `children` | `React.ReactNode` | Content |
-| `wrapperId` | `string?` | Optional wrapper id |
+| `id` | `string?` | Optional wrapper id |
 | `renderMode` | `RenderMode?` | `STACKED \| CURRENT_ONLY \| CURRENT_HIDDEN_STACK` |
-| `wrapperStyle` | `React.CSSProperties?` | Wrapper style |
+| `style` | `React.CSSProperties?` | Dialog style |
 
-### BaseModalProvider API (`useBaseModal()`)
+### BaseModal store API (`useBaseModal()`)
 
 | Name | Type / Signature | Description |
 |---|---|---|
-| `modalCount` | `number` | Number of open modals |
-| `renderMode` | `RenderMode?` | Current render mode |
 | `currentModalId` | `string?` | ID of current modal |
-| `pushModal` | `(el: React.ReactNode, modalId?: string, isDynamic?: boolean) => string` | Push modal and receive id |
-| `popModal` | `(idEl: string \| React.ReactNode) => boolean` | Pop modal by id or element |
-| `updateModalContent` | `(modalId: string, newContent: React.ReactNode) => void` | Replace modal content |
-| `getModalWindowRef` | `(modalId: string) => HTMLDivElement \| undefined` | Access modal DOM |
-| `focusModal` | `(modalId: string) => boolean` | Bring modal to front |
-| `getModalOrderIndex` | `(modalId: string) => number` | Get stacking order index |
+| `actions.pushModal` | `(modalId?: string, el: React.ReactNode, isDynamic?: boolean) => string` | Push modal and receive id |
+| `actions.popModal` | `(modalId: string) => boolean` | Pop modal by id |
+| `actions.updateModal` | `(modalId: string, newContent: React.ReactNode) => boolean` | Replace dynamic modal content |
+| `actions.getModalWindowRef` | `(modalId: string) => HTMLDivElement \| undefined` | Access modal DOM |
+| `actions.focusModal` | `(modalId: string) => boolean` | Bring modal to front |
+| `actions.getModalOrderIndex` | `(modalId: string) => number` | Get stacking order index |
 
 ### `useStaticModal(id?: string)`
 
@@ -180,6 +219,14 @@ Returns a tuple: `[render(el) => ReactNode, show(), close(), focus(), id, isFore
 | `focus()` | Brings the modal to front |
 | `id` | Modal id string |
 | `isForeground` | `boolean` — whether the modal is top-most |
+
+
+## Demo & Testing Notes
+
+- The dev app includes quick demo buttons in `src/main.tsx`:
+	- Loading: "Start Loading (2s)", "Async Use Loading (3s)", and a single-button component test that enables the `Loading` component for 2 seconds.
+	- Modals: buttons to open static and dynamic modals; `BaseModalRenderer` must be rendered once near the root.
+- When testing in jsdom (Vitest), dialog methods are mocked in tests via `HTMLDialogElement.prototype.showModal/close`.
 
 
 
